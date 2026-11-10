@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>당근 클론</title>
+<style>
+:root{--orange:#ff6f0f;--orange-soft:#fff1e8;--ink:#212529;--sub:#868e96;--line:#eceef0;--bg:#f2f3f6;--card:#fff;--blue:#3b82f6;--green:#2fb36a;--red:#e5484d}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;font-size:15px}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+input,select,textarea{font:inherit;color:inherit}
+#app{max-width:480px;height:100%;margin:0 auto;background:var(--card);display:flex;flex-direction:column;position:relative;overflow:hidden;box-shadow:0 0 0 1px var(--line)}
+header.top{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);min-height:52px;background:var(--card)}
+header.top h1{font-size:17px;margin:0;flex:1;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header.top .iconbtn{width:32px;height:32px;display:grid;place-items:center;font-size:20px;border-radius:50%}
+header.top .iconbtn:active{background:var(--bg)}
+.dong-select{appearance:none;border:0;background:none;font-size:18px;font-weight:800;padding:0 4px;max-width:150px}
+main{flex:1;overflow-y:auto;background:var(--card)}
+nav.tabs{display:flex;border-top:1px solid var(--line);background:var(--card);padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs a{flex:1;text-align:center;padding:8px 0 7px;font-size:11px;color:var(--sub);text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav.tabs a .ic{font-size:21px;filter:grayscale(1);opacity:.7}
+nav.tabs a.on{color:var(--ink);font-weight:700}
+nav.tabs a.on .ic{filter:none;opacity:1}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 16px;scrollbar-width:none;border-bottom:1px solid var(--line)}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:6px 12px;border-radius:999px;border:1px solid var(--line);font-size:13px;background:var(--card)}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.search{padding:10px 16px;display:flex;gap:8px;border-bottom:1px solid var(--line)}
+.search input{flex:1;border:0;background:var(--bg);border-radius:8px;padding:9px 12px;outline:none}
+.item{display:flex;gap:14px;padding:16px;border-bottom:1px solid var(--line);cursor:pointer;position:relative}
+.item:active{background:#fafafa}
+.thumb{flex:none;width:104px;height:104px;border-radius:10px;background:var(--orange-soft);display:grid;place-items:center;font-size:46px;overflow:hidden;border:1px solid var(--line)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.item .info{flex:1;min-width:0;display:flex;flex-direction:column}
+.item .title{font-size:15px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.item .meta{color:var(--sub);font-size:12px;margin-top:3px}
+.item .price{font-weight:800;margin-top:5px}
+.item .stats{margin-top:auto;display:flex;gap:10px;justify-content:flex-end;color:var(--sub);font-size:12px}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;margin-right:6px;vertical-align:1px}
+.badge.reserved{background:var(--green);color:#fff}
+.badge.sold{background:#495057;color:#fff}
+.item.sold{opacity:.55}
+.fab{position:absolute;right:16px;bottom:76px;background:var(--orange);color:#fff;border-radius:999px;padding:13px 18px;font-weight:700;box-shadow:0 4px 14px rgba(255,111,15,.4);z-index:5}
+.empty{padding:70px 24px;text-align:center;color:var(--sub);line-height:1.6}
+.empty .big{font-size:42px;margin-bottom:8px}
+.hero{height:300px;background:var(--orange-soft);display:grid;place-items:center;font-size:120px;overflow:hidden}
+.hero img{width:100%;height:100%;object-fit:cover}
+.seller{display:flex;align-items:center;gap:12px;padding:16px;border-bottom:1px solid var(--line)}
+.avatar{width:42px;height:42px;border-radius:50%;background:#ffd8bd;display:grid;place-items:center;font-size:22px;flex:none}
+.seller .nm{font-weight:700}
+.seller .sub{font-size:12px;color:var(--sub)}
+.manner{margin-left:auto;text-align:right;min-width:92px}
+.manner .t{font-weight:800;font-size:15px}
+.bar{height:5px;border-radius:3px;background:var(--line);margin-top:4px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px}
+.body{padding:16px}
+.body h2{font-size:19px;margin:0 0 6px;line-height:1.35}
+.body .cat{color:var(--sub);font-size:12px}
+.body .desc{margin:16px 0;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+.body .stat{color:var(--sub);font-size:12px}
+.bottombar{display:flex;align-items:center;gap:14px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--card)}
+.bottombar .heart{font-size:26px;width:40px;border-right:1px solid var(--line);padding-right:12px}
+.bottombar .pr{flex:1;font-weight:800;font-size:17px}
+.btn{background:var(--orange);color:#fff;font-weight:700;padding:11px 18px;border-radius:8px}
+.btn.gray{background:var(--bg);color:var(--ink)}
+.btn.red{background:#fff0f0;color:var(--red)}
+.btn:disabled{opacity:.5}
+.form{padding:16px;display:flex;flex-direction:column;gap:16px}
+.form label{font-size:13px;font-weight:700;display:block;margin-bottom:6px}
+.form input[type=text],.form input[type=number],.form select,.form textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:11px 12px;outline:none;background:#fff}
+.form input:focus,.form select:focus,.form textarea:focus{border-color:var(--orange)}
+.form textarea{min-height:140px;resize:vertical}
+.photo{display:flex;gap:10px;align-items:center}
+.photo .box{width:84px;height:84px;border:1px dashed #c9ced4;border-radius:10px;display:grid;place-items:center;color:var(--sub);font-size:12px;text-align:center;overflow:hidden;cursor:pointer;background:var(--bg)}
+.photo .box img{width:100%;height:100%;object-fit:cover}
+.emojis{display:flex;gap:6px;flex-wrap:wrap}
+.emojis button{font-size:22px;width:40px;height:40px;border-radius:8px;border:1px solid var(--line)}
+.emojis button.on{border-color:var(--orange);background:var(--orange-soft)}
+.chat-row{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer;align-items:center}
+.chat-row:active{background:#fafafa}
+.chat-row .mid{flex:1;min-width:0}
+.chat-row .nm{font-weight:700}
+.chat-row .nm small{color:var(--sub);font-weight:400;margin-left:6px}
+.chat-row .last{color:#495057;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.chat-row .mini{width:44px;height:44px;border-radius:8px;background:var(--orange-soft);display:grid;place-items:center;font-size:22px;overflow:hidden;flex:none}
+.chat-row .mini img{width:100%;height:100%;object-fit:cover}
+.chatroom{display:flex;flex-direction:column;height:100%}
+.chatitem{display:flex;gap:10px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);background:#fafafa;cursor:pointer}
+.msgs{flex:1;overflow-y:auto;padding:14px 12px;background:#f7f8fa;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:72%;padding:9px 13px;border-radius:16px;line-height:1.45;word-break:break-word;font-size:14.5px}
+.msg.me{align-self:flex-end;background:var(--orange);color:#fff;border-bottom-right-radius:4px}
+.msg.them{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg .tm{display:block;font-size:10px;opacity:.65;margin-top:3px}
+.composer{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--card)}
+.composer input{flex:1;border:1px solid var(--line);border-radius:999px;padding:10px 14px;outline:none}
+.composer .btn{border-radius:999px;padding:10px 16px}
+.profile{padding:20px 16px;display:flex;gap:14px;align-items:center;border-bottom:8px solid var(--bg)}
+.profile .avatar{width:60px;height:60px;font-size:30px}
+.profile .nm{font-size:18px;font-weight:800}
+.menu{border-bottom:8px solid var(--bg)}
+.menu .row{display:flex;justify-content:space-between;align-items:center;padding:15px 16px;border-bottom:1px solid var(--line);cursor:pointer}
+.menu .row:last-child{border:0}
+.menu .row span.v{color:var(--sub)}
+.section-title{padding:14px 16px 4px;font-weight:800;font-size:15px}
+.manner-card{margin:0;padding:16px;border-bottom:8px solid var(--bg)}
+.manner-card .big{display:flex;align-items:baseline;gap:8px}
+.manner-card .big b{font-size:26px}
+.manner-card .bar{height:8px;margin-top:10px}
+.modal-bg{position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;z-index:20}
+.sheet{background:#fff;width:100%;border-radius:16px 16px 0 0;padding:16px;max-height:80%;overflow:auto}
+.sheet h3{margin:4px 0 12px}
+.sheet .opt{display:block;width:100%;text-align:left;padding:13px 6px;border-bottom:1px solid var(--line)}
+.sheet .opt.on{color:var(--orange);font-weight:700}
+.toast{position:absolute;left:50%;bottom:90px;transform:translateX(-50%);background:rgba(33,37,41,.92);color:#fff;padding:10px 16px;border-radius:999px;font-size:13px;z-index:30;white-space:nowrap;animation:fade 2.2s forwards}
+@keyframes fade{0%{opacity:0}8%{opacity:1}85%{opacity:1}100%{opacity:0}}
+.loading{padding:40px;text-align:center;color:var(--sub)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ───────── 유틸 ─────────
+const $app = document.getElementById('app');
+const state = { me: null, meta: null, cat: '', q: '', homeScroll: 0 };
+let poller = null;
+
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const won = (n) => (n === 0 ? '나눔 🧡' : Number(n).toLocaleString('ko-KR') + '원');
+function ago(ts) {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return '방금 전';
+  if (s < 3600) return Math.floor(s / 60) + '분 전';
+  if (s < 86400) return Math.floor(s / 3600) + '시간 전';
+  return Math.floor(s / 86400) + '일 전';
+}
+const clock = (ts) => new Date(ts).toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' });
+function mannerColor(t) { return t < 32 ? '#3b82f6' : t < 36.5 ? '#38b2ac' : t < 40 ? '#2fb36a' : t < 45 ? '#f5a524' : '#ff6f0f'; }
+function mannerBar(t) { return `<div class="bar"><i style="width:${Math.min(100, t)}%;background:${mannerColor(t)}"></i></div>`; }
+function toast(msg) {
+  const el = document.createElement('div'); el.className = 'toast'; el.textContent = msg;
+  $app.appendChild(el); setTimeout(() => el.remove(), 2300);
+}
+async function api(path, opts = {}) {
+  const res = await fetch('/api' + path, {
+    method: opts.method || 'GET',
+    headers: opts.body ? { 'Content-Type': 'application/json' } : undefined,
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || '문제가 발생했어요');
+  return data;
+}
+const thumb = (it) => (it.image ? `<img src="${it.image}" alt="">` : esc(it.emoji));
+const go = (hash) => { location.hash = hash; };
+
+// ───────── 레이아웃 ─────────
+function shell({ title, left = '', right = '', body, bottom = '', tab = null, fab = '' }) {
+  clearInterval(poller);
+  const tabs = tab ? `<nav class="tabs">
+    ${[['home', '🏠', '홈', '#/'], ['likes', '🤍', '관심', '#/likes'], ['chats', '💬', '채팅', '#/chats'], ['me', '👤', '나의 당근', '#/me']]
+      .map(([k, ic, l, h]) => `<a href="${h}" class="${tab === k ? 'on' : ''}"><span class="ic">${ic}</span>${l}</a>`).join('')}</nav>` : '';
+  $app.innerHTML = `<header class="top">${left}${title}${right}</header><main id="main">${body}</main>${fab}${bottom}${tabs}`;
+}
+const backBtn = `<button class="iconbtn" onclick="history.length>1?history.back():go('#/')" aria-label="뒤로">←</button>`;
+
+function itemRow(it) {
+  const badge = it.status === 'reserved' ? '<span class="badge reserved">예약중</span>' : it.status === 'sold' ? '<span class="badge sold">거래완료</span>' : '';
+  return `<div class="item ${it.status === 'sold' ? 'sold' : ''}" onclick="go('#/item/${it.id}')">
+    <div class="thumb">${thumb(it)}</div>
+    <div class="info">
+      <div class="title">${badge}${esc(it.title)}</div>
+      <div class="meta">${esc(it.dong)} · ${ago(it.createdAt)}</div>
+      <div class="price">${won(it.price)}</div>
+      <div class="stats">${it.chatCount ? `<span>💬 ${it.chatCount}</span>` : ''}${it.likeCount ? `<span>🤍 ${it.likeCount}</span>` : ''}</div>
+    </div></div>`;
+}
+const emptyBox = (big, msg) => `<div class="empty"><div class="big">${big}</div>${msg}</div>`;
+
+// ───────── 화면: 홈 ─────────
+async function viewHome() {
+  const dongs = state.meta.dongs;
+  shell({
+    title: `<select class="dong-select" id="dong" aria-label="내 동네">${dongs.map((d) => `<option ${d === state.me.dong ? 'selected' : ''}>${d}</option>`).join('')}</select>`,
+    right: `<button class="iconbtn" onclick="toggleSearch()" aria-label="검색">🔍</button>`,
+    body: `<div class="search" id="searchbar" style="display:${state.q ? 'flex' : 'none'}"><input id="q" placeholder="검색어를 입력하세요" value="${esc(state.q)}"></div>
+      <div class="chips"><button class="chip ${state.cat === '' ? 'on' : ''}" data-c="">전체</button>${state.meta.categories.map((c) => `<button class="chip ${state.cat === c ? 'on' : ''}" data-c="${esc(c)}">${esc(c)}</button>`).join('')}</div>
+      <div id="list"><div class="loading">불러오는 중…</div></div>`,
+    fab: `<button class="fab" onclick="go('#/write')">＋ 글쓰기</button>`,
+    tab: 'home',
+  });
+  document.getElementById('dong').onchange = async (e) => {
+    try { state.me = await api('/me', { method: 'PATCH', body: { dong: e.target.value } }); loadList(); toast(`내 동네를 ${state.me.dong}(으)로 바꿨어요`); }
+    catch (err) { toast(err.message); }
+  };
+  document.querySelectorAll('.chip').forEach((b) => (b.onclick = () => {
+    state.cat = b.dataset.c;
+    document.querySelectorAll('.chip').forEach((x) => x.classList.toggle('on', x === b));
+    loadList();
+  }));
+  const qi = document.getElementById('q');
+  let t; qi.oninput = () => { clearTimeout(t); t = setTimeout(() => { state.q = qi.value.trim(); loadList(); }, 250); };
+  document.getElementById('main').onscroll = (e) => (state.homeScroll = e.target.scrollTop);
+  await loadList();
+  document.getElementById('main').scrollTop = state.homeScroll;
+}
+function toggleSearch() {
+  const bar = document.getElementById('searchbar');
+  const open = bar.style.display === 'none';
+  bar.style.display = open ? 'flex' : 'none';
+  if (open) document.getElementById('q').focus(); else { state.q = ''; document.getElementById('q').value = ''; loadList(); }
+}
+async function loadList() {
+  const el = document.getElementById('list'); if (!el) return;
+  const p = new URLSearchParams({ dong: state.me.dong });
+  if (state.cat) p.set('category', state.cat);
+  if (state.q) p.set('q', state.q);
+  try {
+    const items = await api('/items?' + p);
+    el.innerHTML = items.length ? items.map(itemRow).join('') : emptyBox('🥕', state.q ? `'${esc(state.q)}' 검색 결과가 없어요` : '우리 동네에 아직 글이 없어요.<br>첫 글을 올려보세요!');
+  } catch (e) { el.innerHTML = emptyBox('⚠️', esc(e.message)); }
+}
+
+// ───────── 화면: 상세 ─────────
+async function viewItem(id) {
+  shell({ title: '', left: backBtn, body: '<div class="loading">불러오는 중…</div>' });
+  let it;
+  try { it = await api('/items/' + id); } catch (e) { shell({ title: '<h1>게시글</h1>', left: backBtn, body: emptyBox('😢', esc(e.message)) }); return; }
+  const mine = it.sellerId === state.me.id;
+  const s = it.seller;
+  const body = `<div class="hero">${thumb(it)}</div>
+    <div class="seller"><div class="avatar">🧑</div><div><div class="nm">${esc(s.nickname)}</div><div class="sub">${esc(s.dong)}</div></div>
+      <div class="manner"><div class="t" style="color:${mannerColor(s.manner)}">${s.manner.toFixed(1)}℃</div>${mannerBar(s.manner)}<div class="sub" style="font-size:11px;color:var(--sub);margin-top:3px">매너온도</div></div></div>
+    <div class="body">
+      <h2>${it.status !== 'sale' ? `<span class="badge ${it.status}">${it.status === 'reserved' ? '예약중' : '거래완료'}</span>` : ''}${esc(it.title)}</h2>
+      <div class="cat">${esc(it.category)} · ${ago(it.createdAt)}</div>
+      <div class="desc">${esc(it.desc) || '설명이 없어요.'}</div>
+      <div class="stat">관심 ${it.likeCount} · 채팅 ${it.chatCount} · 조회 ${it.views}</div>
+    </div>`;
+  const bottom = mine
+    ? `<div class="bottombar"><div class="pr">${won(it.price)}</div>
+        <button class="btn gray" id="stbtn">상태 변경</button><button class="btn red" id="delbtn">삭제</button></div>`
+    : `<div class="bottombar"><button class="heart" id="likebtn">${it.liked ? '❤️' : '🤍'}</button><div class="pr">${won(it.price)}</div>
+        <button class="btn" id="chatbtn" ${it.status === 'sold' ? 'disabled' : ''}>채팅하기</button></div>`;
+  shell({ title: '<h1></h1>', left: backBtn, body, bottom });
+
+  if (mine) {
+    document.getElementById('stbtn').onclick = () => openSheet('거래 상태', [['sale', '판매중'], ['reserved', '예약중'], ['sold', '거래완료']], it.status, async (v) => {
+      try { await api('/items/' + it.id, { method: 'PATCH', body: { status: v } }); toast('상태를 변경했어요'); viewItem(it.id); } catch (e) { toast(e.message); }
+    });
+    document.getElementById('delbtn').onclick = async () => {
+      if (!confirm('이 게시글을 삭제할까요?')) return;
+      try { await api('/items/' + it.id, { method: 'DELETE' }); toast('삭제했어요'); go('#/'); } catch (e) { toast(e.message); }
+    };
+  } else {
+    document.getElementById('likebtn').onclick = async (e) => {
+      try { const r = await api(`/items/${it.id}/like`, { method: 'POST' }); e.currentTarget.textContent = r.liked ? '❤️' : '🤍'; toast(r.liked ? '관심 목록에 담았어요' : '관심을 해제했어요'); } catch (err) { toast(err.message); }
+    };
+    document.getElementById('chatbtn').onclick = async () => {
+      try { const c = await api('/chats', { method: 'POST', body: { itemId: it.id } }); go('#/chat/' + c.id); } catch (e) { toast(e.message); }
+    };
+  }
+}
+function openSheet(title, options, current, onPick) {
+  const bg = document.createElement('div'); bg.className = 'modal-bg';
+  bg.innerHTML = `<div class="sheet"><h3>${esc(title)}</h3>${options.map(([v, l]) => `<button class="opt ${v === current ? 'on' : ''}" data-v="${esc(v)}">${esc(l)}</button>`).join('')}</div>`;
+  bg.onclick = (e) => { if (e.target === bg) bg.remove(); const b = e.target.closest('.opt'); if (b) { bg.remove(); onPick(b.dataset.v); } };
+  $app.appendChild(bg);
+}
+
+// ───────── 화면: 글쓰기 ─────────
+const EMOJIS = ['📦', '📱', '💻', '🎧', '👕', '👟', '📚', '🪑', '🧸', '🚲', '🎮', '🍳', '🌱', '🧥', '⌚', '📷'];
+function viewWrite() {
+  let image = null, emoji = '📦';
+  shell({
+    title: '<h1>내 물건 팔기</h1>', left: backBtn,
+    right: `<button class="btn" id="submit" style="padding:7px 14px">완료</button>`,
+    body: `<form class="form" onsubmit="return false">
+      <div><label>사진</label><div class="photo"><label class="box" id="box">📷<br>사진 추가<input type="file" id="file" accept="image/*" hidden></label>
+        <div class="emojis" id="emojis">${EMOJIS.map((e) => `<button type="button" data-e="${e}" class="${e === emoji ? 'on' : ''}">${e}</button>`).join('')}</div></div>
+        <div style="font-size:12px;color:var(--sub);margin-top:6px">사진이 없으면 선택한 이모지가 대표 이미지로 쓰여요.</div></div>
+      <div><label>제목</label><input type="text" id="title" maxlength="60" placeholder="제목"></div>
+      <div><label>카테고리</label><select id="cat"><option value="">카테고리 선택</option>${state.meta.categories.map((c) => `<option>${esc(c)}</option>`).join('')}</select></div>
+      <div><label>가격 (0원이면 나눔)</label><input type="number" id="price" min="0" inputmode="numeric" placeholder="₩ 가격을 입력해주세요"></div>
+      <div><label>자세한 설명</label><textarea id="desc" maxlength="2000" placeholder="${esc(state.me.dong)}에 올릴 게시글 내용을 작성해 주세요."></textarea></div>
+    </form>`,
+  });
+  document.getElementById('emojis').onclick = (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    emoji = b.dataset.e;
+    document.querySelectorAll('#emojis button').forEach((x) => x.classList.toggle('on', x === b));
+  };
+  document.getElementById('file').onchange = async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    try { image = await shrink(f, 800); document.getElementById('box').innerHTML = `<img src="${image}" alt=""><input type="file" id="file" accept="image/*" hidden>`; }
+    catch { toast('이미지를 불러오지 못했어요'); }
+  };
+  document.getElementById('submit').onclick = async (e) => {
+    const body = { title: val('title'), category: val('cat'), price: val('price'), desc: val('desc'), emoji, image };
+    if (!body.title) return toast('제목을 입력해 주세요');
+    if (!body.category) return toast('카테고리를 선택해 주세요');
+    if (body.price === '') return toast('가격을 입력해 주세요');
+    e.target.disabled = true;
+    try { const it = await api('/items', { method: 'POST', body }); toast('게시글을 올렸어요'); go('#/item/' + it.id); }
+    catch (err) { toast(err.message); e.target.disabled = false; }
+  };
+}
+const val = (id) => document.getElementById(id).value.trim();
+function shrink(file, max) {
+  return new Promise((resolve, reject) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const r = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * r); c.height = Math.round(img.height * r);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); resolve(c.toDataURL('image/jpeg', 0.8));
+    };
+    img.onerror = reject; img.src = url;
+  });
+}
+
+// ───────── 화면: 관심 ─────────
+async function viewLikes() {
+  shell({ title: '<h1>관심목록</h1>', body: '<div class="loading">불러오는 중…</div>', tab: 'likes' });
+  try {
+    const items = await api('/items?liked=1');
+    document.getElementById('main').innerHTML = items.length ? items.map(itemRow).join('') : emptyBox('🤍', '관심 있는 상품에 하트를 눌러보세요.');
+  } catch (e) { document.getElementById('main').innerHTML = emptyBox('⚠️', esc(e.message)); }
+}
+
+// ───────── 화면: 채팅 ─────────
+async function viewChats() {
+  shell({ title: '<h1>채팅</h1>', body: '<div class="loading">불러오는 중…</div>', tab: 'chats' });
+  try {
+    const chats = await api('/chats');
+    document.getElementById('main').innerHTML = chats.length ? chats.map((c) => `
+      <div class="chat-row" onclick="go('#/chat/${c.id}')"><div class="avatar">🧑</div>
+        <div class="mid"><div class="nm">${esc(c.other.nickname)}<small>${esc(c.other.dong)} · ${ago(c.lastAt)}</small></div>
+        <div class="last">${esc(c.lastMessage || '대화를 시작해 보세요')}</div></div>
+        <div class="mini">${c.item ? thumb(c.item) : '❔'}</div></div>`).join('')
+      : emptyBox('💬', '아직 채팅이 없어요.<br>마음에 드는 물건에서 채팅을 시작해 보세요.');
+  } catch (e) { document.getElementById('main').innerHTML = emptyBox('⚠️', esc(e.message)); }
+}
+
+async function viewChat(id) {
+  let chat;
+  try { chat = await api('/chats/' + id); } catch (e) { shell({ title: '<h1>채팅</h1>', left: backBtn, body: emptyBox('😢', esc(e.message)) }); return; }
+  shell({
+    title: `<h1>${esc(chat.other.nickname)} <small style="color:${mannerColor(chat.other.manner)};font-weight:700;font-size:12px">${chat.other.manner.toFixed(1)}℃</small></h1>`,
+    left: backBtn,
+    right: `<button class="iconbtn" id="more" aria-label="더보기">⋯</button>`,
+    body: `<div class="chatroom">
+      ${chat.item ? `<div class="chatitem" onclick="go('#/item/${chat.item.id}')"><div class="mini" style="width:40px;height:40px;border-radius:8px;background:var(--orange-soft);display:grid;place-items:center;overflow:hidden">${thumb(chat.item)}</div>
+        <div style="min-width:0"><div style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(chat.item.title)}</div><b style="font-size:13px">${won(chat.item.price)}</b></div></div>` : ''}
+      <div class="msgs" id="msgs"></div>
+      <form class="composer" id="form"><input id="text" placeholder="메시지 보내기" autocomplete="off" maxlength="500"><button class="btn">전송</button></form></div>`,
+  });
+  document.getElementById('main').style.overflow = 'hidden';
+  let lastCount = -1;
+  const render = (msgs) => {
+    if (msgs.length === lastCount) return; lastCount = msgs.length;
+    const box = document.getElementById('msgs'); if (!box) return;
+    box.innerHTML = msgs.length ? msgs.map((m) => `<div class="msg ${m.senderId === state.me.id ? 'me' : 'them'}">${esc(m.text)}<span class="tm">${clock(m.createdAt)}</span></div>`).join('')
+      : `<div class="empty" style="padding:40px 0">👋 먼저 인사를 건네 보세요</div>`;
+    box.scrollTop = box.scrollHeight;
+  };
+  render(chat.messages);
+  poller = setInterval(async () => { try { render((await api('/chats/' + id)).messages); } catch {} }, 1500);
+  document.getElementById('form').onsubmit = async (e) => {
+    e.preventDefault();
+    const input = document.getElementById('text'), text = input.value.trim(); if (!text) return;
+    input.value = '';
+    try { await api(`/chats/${id}/messages`, { method: 'POST', body: { text } }); render((await api('/chats/' + id)).messages); }
+    catch (err) { toast(err.message); input.value = text; }
+  };
+  document.getElementById('more').onclick = () => openSheet('거래 후 매너 평가', [['good', '👍 친절하고 약속을 잘 지켜요 (+0.5℃)'], ['bad', '👎 불편했어요 (−0.5℃)']], '', async (v) => {
+    try { const u = await api(`/users/${chat.other.id}/review`, { method: 'POST', body: { rating: v } }); toast(`${u.nickname}님의 매너온도: ${u.manner.toFixed(1)}℃`); }
+    catch (err) { toast(err.message); }
+  });
+}
+
+// ───────── 화면: 나의 당근 ─────────
+async function viewMe() {
+  shell({ title: '<h1>나의 당근</h1>', body: '<div class="loading">불러오는 중…</div>', tab: 'me' });
+  try {
+    state.me = await api('/me');
+    const mine = await api('/items?seller=' + state.me.id);
+    const m = state.me;
+    document.getElementById('main').innerHTML = `
+      <div class="profile"><div class="avatar">🧑</div><div><div class="nm">${esc(m.nickname)}</div><div style="color:var(--sub);font-size:13px">${esc(m.dong)}</div></div></div>
+      <div class="manner-card"><div style="font-size:13px;color:var(--sub)">매너온도</div>
+        <div class="big"><b style="color:${mannerColor(m.manner)}">${m.manner.toFixed(1)}℃</b><span style="color:var(--sub);font-size:12px">기본 36.5℃</span></div>${mannerBar(m.manner)}</div>
+      <div class="menu">
+        <div class="row" id="rowDong"><span>내 동네 설정</span><span class="v">${esc(m.dong)} ›</span></div>
+        <div class="row" id="rowNick"><span>닉네임 변경</span><span class="v">${esc(m.nickname)} ›</span></div>
+      </div>
+      <div class="section-title">내 판매 상품 (${mine.length})</div>
+      ${mine.length ? mine.map(itemRow).join('') : emptyBox('📦', '아직 올린 물건이 없어요.')}`;
+    document.getElementById('rowDong').onclick = () => openSheet('내 동네 선택', state.meta.dongs.map((d) => [d, d]), m.dong, async (v) => {
+      try { state.me = await api('/me', { method: 'PATCH', body: { dong: v } }); toast('동네를 변경했어요'); viewMe(); } catch (e) { toast(e.message); }
+    });
+    document.getElementById('rowNick').onclick = async () => {
+      const n = prompt('새 닉네임 (1~12자)', m.nickname); if (n === null) return;
+      try { state.me = await api('/me', { method: 'PATCH', body: { nickname: n } }); toast('닉네임을 변경했어요'); viewMe(); } catch (e) { toast(e.message); }
+    };
+  } catch (e) { document.getElementById('main').innerHTML = emptyBox('⚠️', esc(e.message)); }
+}
+
+// ───────── 라우터 ─────────
+async function router() {
+  const h = location.hash || '#/';
+  let m;
+  if (h === '#/') return viewHome();
+  if (h === '#/write') return viewWrite();
+  if (h === '#/likes') return viewLikes();
+  if (h === '#/chats') return viewChats();
+  if (h === '#/me') return viewMe();
+  if ((m = h.match(/^#\/item\/(\d+)$/))) return viewItem(m[1]);
+  if ((m = h.match(/^#\/chat\/(\d+)$/))) return viewChat(m[1]);
+  go('#/');
+}
+window.addEventListener('hashchange', router);
+(async () => {
+  try {
+    [state.me, state.meta] = await Promise.all([api('/me'), api('/meta')]);
+    router();
+  } catch (e) { $app.innerHTML = emptyBox('⚠️', '서버에 연결할 수 없어요.<br>node server.js 로 서버를 실행했는지 확인해 주세요.'); }
+})();
+</script>
+</body>
+</html>
