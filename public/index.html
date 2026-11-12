@@ -309,8 +309,16 @@ async function viewItem(id) {
       try { await api('/items/' + it.id, { method: 'DELETE' }); toast('삭제했어요'); go('#/'); } catch (e) { toast(e.message); }
     });
   } else {
-    document.getElementById('likebtn').onclick = async (e) => {
-      try { const r = await api(`/items/${it.id}/like`, { method: 'POST' }); e.currentTarget.textContent = r.liked ? '❤️' : '🤍'; toast(r.liked ? '관심 목록에 담았어요' : '관심을 해제했어요'); } catch (err) { toast(err.message); }
+    const likeBtn = document.getElementById('likebtn');
+    likeBtn.onclick = async () => {
+      // e.currentTarget은 await 뒤에는 null이 되므로, 버튼을 미리 변수에 담아 둔다
+      likeBtn.disabled = true;
+      try {
+        const r = await api(`/items/${it.id}/like`, { method: 'POST' });
+        likeBtn.textContent = r.liked ? '❤️' : '🤍';
+        toast(r.liked ? '관심 목록에 담았어요' : '관심을 해제했어요');
+      } catch (err) { toast(err.message); }
+      likeBtn.disabled = false;
     };
     document.getElementById('chatbtn').onclick = async () => {
       try { const c = await api('/chats', { method: 'POST', body: { itemId: it.id } }); go('#/chat/' + c.id); } catch (e) { toast(e.message); }
