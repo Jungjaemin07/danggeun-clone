@@ -106,6 +106,8 @@ const mapItem = (r) => ({
 function createServer(db, opts = {}) {
   const mailer = opts.mailer || consoleMailer;
   const mailIpLimit = opts.mailIpLimit || 10; // IP당 시간당 인증 메일 요청 수
+  // false면 이메일 인증 없이 바로 가입돼요 (학회 시연 같은 데모용. EMAIL_VERIFICATION=off)
+  const verifyEmail = opts.verifyEmail !== false;
   const routes = [];
   const route = (method, pattern, handler, opts = {}) => {
     const keys = [];
@@ -181,6 +183,21 @@ function createServer(db, opts = {}) {
     if (password.length < 8 || password.length > 128) throw fail(400, '비밀번호는 8자 이상 입력해 주세요');
     const dong = DONGS.includes(body.dong) ? body.dong : DONGS[0];
     if ((await db.query('SELECT 1 FROM users WHERE email = $1', [email])).rows.length) throw fail(409, '이미 가입된 이메일이에요');
+    if (!verifyEmail) {
+      // 인증 생략 모드: 바로 계정을 만들고 로그인 (가입 남용을 막기 위해 IP당 시간당 20회로 제한)
+      if (limited(`signup-ip:${clientIp(req)}`, opts.signupIpLimit || 20, 3600 * 1000)) throw fail(429, '가입 요청이 너무 많아요. 잠시 후 다시 시도해 주세요');
+      let id;
+      try {
+        const r = await db.query(
+          'INSERT INTO users (email, nickname, pw_hash, dong, manner_base, is_demo, created_at) VALUES ($1, $2, $3, $4, 36.5, 0, $5) RETURNING id',
+          [email, nickname, await hashPassword(password), dong, Date.now()]);
+        id = Number(r.rows[0].id);
+      } catch (e) {
+        if (isUnique(e)) throw fail(409, '이미 가입된 이메일이에요');
+        throw e;
+      }
+      return new Reply(201, await loadMe(id), { 'Set-Cookie': await startSession(id) });
+    }
     const wait = cooldownLeft(await getPending(email));
     if (wait > 0) throw fail(429, `${wait}초 후에 다시 시도해 주세요`);
     mailLimit(email, req);
@@ -543,10 +560,13 @@ async function main() {
     console.error('DB 초기화에 실패했어요:', e.message);
     process.exit(1);
   }
-  let mailer = createMailer();
-  if (!mailer) {
+  const verifyEmail = String(process.env.EMAIL_VERIFICATION || '').toLowerCase() !== 'off';
+  let mailer = verifyEmail ? createMailer() : consoleMailer;
+  if (!verifyEmail) {
+    console.warn('[주의] 이메일 인증이 꺼져 있어요(EMAIL_VERIFICATION=off). 누구나 아무 이메일로 가입할 수 있으니 시연용으로만 쓰세요.');
+  } else if (!mailer) {
     if (IS_PROD) {
-      console.error('인증 메일 설정이 필요해요. MAIL_PROVIDER와 관련 환경변수(.env.example 참고)를 설정해 주세요.');
+      console.error('인증 메일 설정이 필요해요. MAIL_PROVIDER와 관련 환경변수(.env.example 참고)를 설정해 주세요. (시연용이면 EMAIL_VERIFICATION=off)');
       process.exit(1);
     }
     console.warn('[개발 모드] 메일 설정이 없어서 인증 코드를 이 터미널에 출력해요.');
@@ -555,7 +575,7 @@ async function main() {
     console.log(`메일 발송 방식: ${mailer.provider}`);
   }
   const port = process.env.PORT || 3000;
-  const server = createServer(db, { mailer });
+  const server = createServer(db, { mailer, verifyEmail });
   server.listen(port, '0.0.0.0', () => console.log(`당근마켓 클론 서버 실행 중: http://localhost:${port}`));
   const shutdown = () => { server.close(() => db.close().finally(() => process.exit(0))); setTimeout(() => process.exit(0), 5000).unref(); };
   process.on('SIGTERM', shutdown);
