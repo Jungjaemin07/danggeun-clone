@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>당근 클론</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%A5%95%3C/text%3E%3C/svg%3E">
 <style>
 :root{--orange:#ff6f0f;--orange-soft:#fff1e8;--ink:#212529;--sub:#868e96;--line:#eceef0;--bg:#f2f3f6;--card:#fff;--blue:#3b82f6;--green:#2fb36a;--red:#e5484d}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -115,6 +116,56 @@ nav.tabs a.on .ic{filter:none;opacity:1}
 .toast{position:absolute;left:50%;bottom:90px;transform:translateX(-50%);background:rgba(33,37,41,.92);color:#fff;padding:10px 16px;border-radius:999px;font-size:13px;z-index:30;white-space:nowrap;animation:fade 2.2s forwards}
 @keyframes fade{0%{opacity:0}8%{opacity:1}85%{opacity:1}100%{opacity:0}}
 .loading{padding:40px;text-align:center;color:var(--sub)}
+.detail{display:block}
+.code-input{text-align:center;font-size:28px!important;letter-spacing:10px;font-weight:700!important}
+.auth .hint{color:var(--sub);font-size:12px;line-height:1.6;margin:18px 0 0}
+.auth .sub b{color:var(--ink)}
+.linkbtn{color:var(--sub);text-decoration:underline;font-size:13px;padding:8px;align-self:center}
+.dlg-input{width:100%;border:1px solid var(--line);border-radius:8px;padding:12px;outline:none;font-size:16px}
+.dlg-input:focus{border-color:var(--orange)}
+.dlg-hint{color:var(--sub);font-size:12px;margin:8px 0 14px}
+.dlg-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+.dlg-btns .btn{flex:1}
+.auth{max-width:360px;margin:0 auto;padding:48px 24px 24px;text-align:center}
+.auth .logo{font-size:56px}
+.auth h1{margin:8px 0 2px;font-size:24px}
+.auth .sub{color:var(--sub);margin:0 0 24px}
+.auth .seg{display:flex;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:18px}
+.auth .seg button{flex:1;padding:9px;border-radius:8px;font-weight:700;color:var(--sub)}
+.auth .seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.auth form{display:flex;flex-direction:column;gap:14px;text-align:left}
+.auth label{font-size:13px;font-weight:700;display:flex;flex-direction:column;gap:6px}
+.auth input,.auth select{border:1px solid var(--line);border-radius:8px;padding:12px;outline:none;font-weight:400;background:#fff}
+.auth input:focus,.auth select:focus{border-color:var(--orange)}
+.auth .err{color:var(--red);font-size:13px;min-height:18px;margin:0}
+.auth .btn{padding:13px}
+/* ───── PC 화면 (900px 이상) ───── */
+@media (min-width:900px){
+  html,body{background:#e9ebee}
+  #app{max-width:1120px;height:calc(100% - 32px);margin:16px auto;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,.08)}
+  #app.narrow{max-width:640px}
+  #app.has-tabs{display:grid;grid-template-columns:210px 1fr;grid-template-rows:auto 1fr}
+  #app.has-tabs>header.top{grid-column:2;grid-row:1}
+  #app.has-tabs>main{grid-column:2;grid-row:2;min-height:0}
+  #app.has-tabs>nav.tabs{grid-column:1;grid-row:1/3;flex-direction:column;align-content:flex-start;border-top:0;border-right:1px solid var(--line);padding:18px 12px;gap:4px;background:#fafafa}
+  nav.tabs::before{content:"🥕 당근 클론";font-weight:800;font-size:18px;color:var(--orange);padding:6px 12px 18px}
+  nav.tabs a{flex:none;flex-direction:row;justify-content:flex-start;gap:12px;padding:12px;border-radius:10px;font-size:15px}
+  nav.tabs a:hover{background:var(--bg)}
+  nav.tabs a.on{background:var(--orange-soft);color:var(--orange)}
+  nav.tabs a .ic{font-size:20px}
+  .fab{bottom:24px;right:28px}
+  .chips{flex-wrap:wrap;overflow:visible}
+  .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:20px 18px;padding:18px}
+  .list>.empty,.list>.loading{grid-column:1/-1}
+  .list .item{flex-direction:column;padding:0;border:0;gap:10px;border-radius:12px}
+  .list .item:hover,.list .item:active{background:none}
+  .list .thumb{width:100%;height:auto;aspect-ratio:1;font-size:72px;border-radius:12px}
+  .list .item .stats{margin-top:6px;justify-content:flex-start}
+  .detail{display:grid;grid-template-columns:1fr 1fr;min-height:100%}
+  .detail .hero{height:100%;min-height:480px;font-size:160px}
+  .modal-bg{align-items:center;justify-content:center}
+  .sheet{width:420px;border-radius:16px}
+}
 </style>
 </head>
 <body>
@@ -148,15 +199,21 @@ async function api(path, opts = {}) {
     body: opts.body ? JSON.stringify(opts.body) : undefined,
   });
   const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && !opts.noRedirect && !path.startsWith('/auth/')) {
+    state.me = null;
+    if (location.hash !== '#/login') go('#/login');
+    throw new Error('로그인이 필요해요');
+  }
   if (!res.ok) throw new Error(data.error || '문제가 발생했어요');
   return data;
 }
-const thumb = (it) => (it.image ? `<img src="${it.image}" alt="">` : esc(it.emoji));
+const thumb = (it) => (it.hasImage ? `<img src="/api/items/${it.id}/image" alt="" loading="lazy">` : esc(it.emoji));
 const go = (hash) => { location.hash = hash; };
 
 // ───────── 레이아웃 ─────────
-function shell({ title, left = '', right = '', body, bottom = '', tab = null, fab = '' }) {
+function shell({ title, left = '', right = '', body, bottom = '', tab = null, fab = '', narrow = false }) {
   clearInterval(poller);
+  $app.className = [tab ? 'has-tabs' : '', narrow ? 'narrow' : ''].join(' ').trim();
   const tabs = tab ? `<nav class="tabs">
     ${[['home', '🏠', '홈', '#/'], ['likes', '🤍', '관심', '#/likes'], ['chats', '💬', '채팅', '#/chats'], ['me', '👤', '나의 당근', '#/me']]
       .map(([k, ic, l, h]) => `<a href="${h}" class="${tab === k ? 'on' : ''}"><span class="ic">${ic}</span>${l}</a>`).join('')}</nav>` : '';
@@ -185,7 +242,7 @@ async function viewHome() {
     right: `<button class="iconbtn" onclick="toggleSearch()" aria-label="검색">🔍</button>`,
     body: `<div class="search" id="searchbar" style="display:${state.q ? 'flex' : 'none'}"><input id="q" placeholder="검색어를 입력하세요" value="${esc(state.q)}"></div>
       <div class="chips"><button class="chip ${state.cat === '' ? 'on' : ''}" data-c="">전체</button>${state.meta.categories.map((c) => `<button class="chip ${state.cat === c ? 'on' : ''}" data-c="${esc(c)}">${esc(c)}</button>`).join('')}</div>
-      <div id="list"><div class="loading">불러오는 중…</div></div>`,
+      <div class="list" id="list"><div class="loading">불러오는 중…</div></div>`,
     fab: `<button class="fab" onclick="go('#/write')">＋ 글쓰기</button>`,
     tab: 'home',
   });
@@ -228,7 +285,7 @@ async function viewItem(id) {
   try { it = await api('/items/' + id); } catch (e) { shell({ title: '<h1>게시글</h1>', left: backBtn, body: emptyBox('😢', esc(e.message)) }); return; }
   const mine = it.sellerId === state.me.id;
   const s = it.seller;
-  const body = `<div class="hero">${thumb(it)}</div>
+  const body = `<div class="detail"><div class="hero">${thumb(it)}</div><div class="side">
     <div class="seller"><div class="avatar">🧑</div><div><div class="nm">${esc(s.nickname)}</div><div class="sub">${esc(s.dong)}</div></div>
       <div class="manner"><div class="t" style="color:${mannerColor(s.manner)}">${s.manner.toFixed(1)}℃</div>${mannerBar(s.manner)}<div class="sub" style="font-size:11px;color:var(--sub);margin-top:3px">매너온도</div></div></div>
     <div class="body">
@@ -236,7 +293,7 @@ async function viewItem(id) {
       <div class="cat">${esc(it.category)} · ${ago(it.createdAt)}</div>
       <div class="desc">${esc(it.desc) || '설명이 없어요.'}</div>
       <div class="stat">관심 ${it.likeCount} · 채팅 ${it.chatCount} · 조회 ${it.views}</div>
-    </div>`;
+    </div></div></div>`;
   const bottom = mine
     ? `<div class="bottombar"><div class="pr">${won(it.price)}</div>
         <button class="btn gray" id="stbtn">상태 변경</button><button class="btn red" id="delbtn">삭제</button></div>`
@@ -248,10 +305,9 @@ async function viewItem(id) {
     document.getElementById('stbtn').onclick = () => openSheet('거래 상태', [['sale', '판매중'], ['reserved', '예약중'], ['sold', '거래완료']], it.status, async (v) => {
       try { await api('/items/' + it.id, { method: 'PATCH', body: { status: v } }); toast('상태를 변경했어요'); viewItem(it.id); } catch (e) { toast(e.message); }
     });
-    document.getElementById('delbtn').onclick = async () => {
-      if (!confirm('이 게시글을 삭제할까요?')) return;
+    document.getElementById('delbtn').onclick = () => askConfirm('이 게시글을 삭제할까요?', '삭제', async () => {
       try { await api('/items/' + it.id, { method: 'DELETE' }); toast('삭제했어요'); go('#/'); } catch (e) { toast(e.message); }
-    };
+    });
   } else {
     document.getElementById('likebtn').onclick = async (e) => {
       try { const r = await api(`/items/${it.id}/like`, { method: 'POST' }); e.currentTarget.textContent = r.liked ? '❤️' : '🤍'; toast(r.liked ? '관심 목록에 담았어요' : '관심을 해제했어요'); } catch (err) { toast(err.message); }
@@ -267,13 +323,31 @@ function openSheet(title, options, current, onPick) {
   bg.onclick = (e) => { if (e.target === bg) bg.remove(); const b = e.target.closest('.opt'); if (b) { bg.remove(); onPick(b.dataset.v); } };
   $app.appendChild(bg);
 }
+// 브라우저 기본 팝업(prompt/confirm)은 내장 브라우저 등에서 막힐 수 있어 화면 안의 입력창으로 대체
+function askText(title, value, onOk, hint = '') {
+  const bg = document.createElement('div'); bg.className = 'modal-bg';
+  bg.innerHTML = `<form class="sheet"><h3>${esc(title)}</h3>
+    <input class="dlg-input" maxlength="12" value="${esc(value)}" autocomplete="off">
+    <p class="dlg-hint">${esc(hint)}</p>
+    <div class="dlg-btns"><button type="button" class="btn gray" data-x>취소</button><button class="btn">확인</button></div></form>`;
+  const input = bg.querySelector('input');
+  bg.onclick = (e) => { if (e.target === bg || e.target.hasAttribute('data-x')) bg.remove(); };
+  bg.querySelector('form').onsubmit = (e) => { e.preventDefault(); const v = input.value.trim(); bg.remove(); onOk(v); };
+  $app.appendChild(bg); input.focus(); input.select();
+}
+function askConfirm(title, okLabel, onOk) {
+  const bg = document.createElement('div'); bg.className = 'modal-bg';
+  bg.innerHTML = `<div class="sheet"><h3>${esc(title)}</h3><div class="dlg-btns"><button class="btn gray" data-x>취소</button><button class="btn red" data-ok>${esc(okLabel)}</button></div></div>`;
+  bg.onclick = (e) => { if (e.target === bg || e.target.hasAttribute('data-x')) bg.remove(); if (e.target.hasAttribute('data-ok')) { bg.remove(); onOk(); } };
+  $app.appendChild(bg);
+}
 
 // ───────── 화면: 글쓰기 ─────────
 const EMOJIS = ['📦', '📱', '💻', '🎧', '👕', '👟', '📚', '🪑', '🧸', '🚲', '🎮', '🍳', '🌱', '🧥', '⌚', '📷'];
 function viewWrite() {
   let image = null, emoji = '📦';
   shell({
-    title: '<h1>내 물건 팔기</h1>', left: backBtn,
+    title: '<h1>내 물건 팔기</h1>', left: backBtn, narrow: true,
     right: `<button class="btn" id="submit" style="padding:7px 14px">완료</button>`,
     body: `<form class="form" onsubmit="return false">
       <div><label>사진</label><div class="photo"><label class="box" id="box">📷<br>사진 추가<input type="file" id="file" accept="image/*" hidden></label>
@@ -324,7 +398,7 @@ async function viewLikes() {
   shell({ title: '<h1>관심목록</h1>', body: '<div class="loading">불러오는 중…</div>', tab: 'likes' });
   try {
     const items = await api('/items?liked=1');
-    document.getElementById('main').innerHTML = items.length ? items.map(itemRow).join('') : emptyBox('🤍', '관심 있는 상품에 하트를 눌러보세요.');
+    document.getElementById('main').innerHTML = items.length ? '<div class="list">' + items.map(itemRow).join('') + '</div>' : emptyBox('🤍', '관심 있는 상품에 하트를 눌러보세요.');
   } catch (e) { document.getElementById('main').innerHTML = emptyBox('⚠️', esc(e.message)); }
 }
 
@@ -348,7 +422,7 @@ async function viewChat(id) {
   shell({
     title: `<h1>${esc(chat.other.nickname)} <small style="color:${mannerColor(chat.other.manner)};font-weight:700;font-size:12px">${chat.other.manner.toFixed(1)}℃</small></h1>`,
     left: backBtn,
-    right: `<button class="iconbtn" id="more" aria-label="더보기">⋯</button>`,
+    right: `<button class="iconbtn" id="more" aria-label="더보기">⋯</button>`, narrow: true,
     body: `<div class="chatroom">
       ${chat.item ? `<div class="chatitem" onclick="go('#/item/${chat.item.id}')"><div class="mini" style="width:40px;height:40px;border-radius:8px;background:var(--orange-soft);display:grid;place-items:center;overflow:hidden">${thumb(chat.item)}</div>
         <div style="min-width:0"><div style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(chat.item.title)}</div><b style="font-size:13px">${won(chat.item.price)}</b></div></div>` : ''}
@@ -356,21 +430,30 @@ async function viewChat(id) {
       <form class="composer" id="form"><input id="text" placeholder="메시지 보내기" autocomplete="off" maxlength="500"><button class="btn">전송</button></form></div>`,
   });
   document.getElementById('main').style.overflow = 'hidden';
+  let msgs = chat.messages.slice();
   let lastCount = -1;
-  const render = (msgs) => {
+  const render = () => {
     if (msgs.length === lastCount) return; lastCount = msgs.length;
     const box = document.getElementById('msgs'); if (!box) return;
     box.innerHTML = msgs.length ? msgs.map((m) => `<div class="msg ${m.senderId === state.me.id ? 'me' : 'them'}">${esc(m.text)}<span class="tm">${clock(m.createdAt)}</span></div>`).join('')
       : `<div class="empty" style="padding:40px 0">👋 먼저 인사를 건네 보세요</div>`;
     box.scrollTop = box.scrollHeight;
   };
-  render(chat.messages);
-  poller = setInterval(async () => { try { render((await api('/chats/' + id)).messages); } catch {} }, 1500);
+  const addMsgs = (list) => {
+    const seen = new Set(msgs.map((m) => m.id));
+    const fresh = list.filter((m) => !seen.has(m.id));
+    if (fresh.length) { msgs = msgs.concat(fresh); render(); }
+  };
+  render();
+  poller = setInterval(async () => {
+    if (document.hidden) return;
+    try { const last = msgs.length ? msgs[msgs.length - 1].id : 0; addMsgs((await api(`/chats/${id}?after=${last}`)).messages); } catch {}
+  }, 3000);
   document.getElementById('form').onsubmit = async (e) => {
     e.preventDefault();
     const input = document.getElementById('text'), text = input.value.trim(); if (!text) return;
     input.value = '';
-    try { await api(`/chats/${id}/messages`, { method: 'POST', body: { text } }); render((await api('/chats/' + id)).messages); }
+    try { addMsgs([await api(`/chats/${id}/messages`, { method: 'POST', body: { text } })]); }
     catch (err) { toast(err.message); input.value = text; }
   };
   document.getElementById('more').onclick = () => openSheet('거래 후 매너 평가', [['good', '👍 친절하고 약속을 잘 지켜요 (+0.5℃)'], ['bad', '👎 불편했어요 (−0.5℃)']], '', async (v) => {
@@ -387,29 +470,124 @@ async function viewMe() {
     const mine = await api('/items?seller=' + state.me.id);
     const m = state.me;
     document.getElementById('main').innerHTML = `
-      <div class="profile"><div class="avatar">🧑</div><div><div class="nm">${esc(m.nickname)}</div><div style="color:var(--sub);font-size:13px">${esc(m.dong)}</div></div></div>
+      <div class="profile"><div class="avatar">🧑</div><div><div class="nm">${esc(m.nickname)}</div><div style="color:var(--sub);font-size:13px">${esc(m.dong)} · ${esc(m.email)}</div></div></div>
       <div class="manner-card"><div style="font-size:13px;color:var(--sub)">매너온도</div>
         <div class="big"><b style="color:${mannerColor(m.manner)}">${m.manner.toFixed(1)}℃</b><span style="color:var(--sub);font-size:12px">기본 36.5℃</span></div>${mannerBar(m.manner)}</div>
       <div class="menu">
         <div class="row" id="rowDong"><span>내 동네 설정</span><span class="v">${esc(m.dong)} ›</span></div>
         <div class="row" id="rowNick"><span>닉네임 변경</span><span class="v">${esc(m.nickname)} ›</span></div>
+        <div class="row" id="rowOut"><span>로그아웃</span><span class="v">›</span></div>
       </div>
       <div class="section-title">내 판매 상품 (${mine.length})</div>
-      ${mine.length ? mine.map(itemRow).join('') : emptyBox('📦', '아직 올린 물건이 없어요.')}`;
+      ${mine.length ? '<div class="list">' + mine.map(itemRow).join('') + '</div>' : emptyBox('📦', '아직 올린 물건이 없어요.')}`;
     document.getElementById('rowDong').onclick = () => openSheet('내 동네 선택', state.meta.dongs.map((d) => [d, d]), m.dong, async (v) => {
       try { state.me = await api('/me', { method: 'PATCH', body: { dong: v } }); toast('동네를 변경했어요'); viewMe(); } catch (e) { toast(e.message); }
     });
-    document.getElementById('rowNick').onclick = async () => {
-      const n = prompt('새 닉네임 (1~12자)', m.nickname); if (n === null) return;
-      try { state.me = await api('/me', { method: 'PATCH', body: { nickname: n } }); toast('닉네임을 변경했어요'); viewMe(); } catch (e) { toast(e.message); }
+    document.getElementById('rowOut').onclick = async () => {
+      try { await api('/auth/logout', { method: 'POST' }); } catch {}
+      state.me = null; state.cat = ''; state.q = ''; state.homeScroll = 0;
+      go('#/login');
     };
+    document.getElementById('rowNick').onclick = () => askText('닉네임 변경', m.nickname, async (n) => {
+      try { state.me = await api('/me', { method: 'PATCH', body: { nickname: n } }); toast('닉네임을 변경했어요'); viewMe(); } catch (e) { toast(e.message); }
+    }, '2~12자로 입력해 주세요');
   } catch (e) { document.getElementById('main').innerHTML = emptyBox('⚠️', esc(e.message)); }
+}
+
+// ───────── 화면: 로그인 / 회원가입 ─────────
+function finishLogin(user) {
+  try { sessionStorage.removeItem('pendingEmail'); } catch {}
+  state.me = user; state.cat = ''; state.q = ''; state.homeScroll = 0;
+  go('#/');
+}
+function viewLogin(mode = 'login', resume = false) {
+  clearInterval(poller);
+  if (resume) {
+    let pe = null; try { pe = sessionStorage.getItem('pendingEmail'); } catch {}
+    if (pe) return viewVerify(pe, 0);
+  }
+  const signup = mode === 'signup';
+  $app.className = 'narrow';
+  $app.innerHTML = `<main id="main"><div class="auth">
+    <div class="logo">🥕</div><h1>당근 클론</h1><p class="sub">우리 동네 중고거래</p>
+    <div class="seg"><button type="button" data-m="login" class="${signup ? '' : 'on'}">로그인</button><button type="button" data-m="signup" class="${signup ? 'on' : ''}">회원가입</button></div>
+    <form id="authform" novalidate>
+      <label>이메일<input type="email" id="email" autocomplete="email" placeholder="example@email.com"></label>
+      ${signup ? '<label>닉네임<input type="text" id="nick" maxlength="12" autocomplete="nickname" placeholder="2~12자"></label>' : ''}
+      <label>비밀번호<input type="password" id="pw" autocomplete="${signup ? 'new-password' : 'current-password'}" placeholder="${signup ? '8자 이상' : '비밀번호'}"></label>
+      ${signup ? `<label>내 동네<select id="dongsel">${state.meta.dongs.map((d) => `<option>${esc(d)}</option>`).join('')}</select></label>` : ''}
+      <p class="err" id="err"></p>
+      <button class="btn" id="authbtn">${signup ? '가입하고 시작하기' : '로그인'}</button>
+    </form></div></main>`;
+  document.querySelectorAll('.seg button').forEach((b) => (b.onclick = () => viewLogin(b.dataset.m)));
+  document.getElementById('authform').onsubmit = async (e) => {
+    e.preventDefault();
+    const err = document.getElementById('err'), btn = document.getElementById('authbtn');
+    err.textContent = '';
+    const body = { email: val('email'), password: document.getElementById('pw').value };
+    if (signup) { body.nickname = val('nick'); body.dong = document.getElementById('dongsel').value; }
+    btn.disabled = true;
+    try {
+      const r = await api(signup ? '/auth/signup' : '/auth/login', { method: 'POST', body });
+      if (r.needsVerification) return viewVerify(r.email, r.resendAfterSec);
+      finishLogin(r);
+    } catch (ex) { err.textContent = ex.message; btn.disabled = false; }
+  };
+  document.getElementById('email').focus();
+}
+
+// ───────── 화면: 이메일 인증 ─────────
+function viewVerify(email, wait = 60) {
+  clearInterval(poller);
+  try { sessionStorage.setItem('pendingEmail', email); } catch {}
+  $app.className = 'narrow';
+  $app.innerHTML = `<main id="main"><div class="auth">
+    <div class="logo">✉️</div><h1>이메일 인증</h1>
+    <p class="sub"><b>${esc(email)}</b>로 보낸<br>6자리 인증 코드를 입력해 주세요</p>
+    <form id="vform" novalidate>
+      <input id="vcode" class="code-input" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000">
+      <p class="err" id="err"></p>
+      <button class="btn" id="vbtn">인증하고 가입 완료</button>
+      <button type="button" class="btn gray" id="resend"></button>
+      <button type="button" class="linkbtn" id="back">이메일 다시 입력하기</button>
+    </form>
+    <p class="hint">메일이 안 보이면 스팸함도 확인해 주세요.<br>인증 코드는 10분 동안 유효해요.</p></div></main>`;
+  const err = document.getElementById('err'), resend = document.getElementById('resend'), vbtn = document.getElementById('vbtn');
+  let left = wait;
+  const tick = () => {
+    resend.disabled = left > 0;
+    resend.textContent = left > 0 ? `코드 다시 받기 (${left}초)` : '코드 다시 받기';
+    if (left > 0) left -= 1;
+  };
+  tick(); poller = setInterval(tick, 1000);
+  const code = document.getElementById('vcode');
+  code.oninput = () => { code.value = code.value.replace(/\D/g, '').slice(0, 6); };
+  document.getElementById('vform').onsubmit = async (e) => {
+    e.preventDefault(); err.textContent = '';
+    if (code.value.length !== 6) { err.textContent = '6자리 숫자를 입력해 주세요'; return; }
+    vbtn.disabled = true;
+    try { finishLogin(await api('/auth/verify', { method: 'POST', body: { email, code: code.value } })); }
+    catch (ex) { err.textContent = ex.message; vbtn.disabled = false; code.select(); }
+  };
+  resend.onclick = async () => {
+    err.textContent = ''; resend.disabled = true;
+    try { const r = await api('/auth/resend', { method: 'POST', body: { email } }); left = r.resendAfterSec; toast('인증 코드를 다시 보냈어요'); code.value = ''; code.focus(); }
+    catch (ex) { err.textContent = ex.message; left = 0; }
+  };
+  document.getElementById('back').onclick = () => {
+    try { sessionStorage.removeItem('pendingEmail'); } catch {}
+    viewLogin('signup');
+  };
+  code.focus();
 }
 
 // ───────── 라우터 ─────────
 async function router() {
   const h = location.hash || '#/';
   let m;
+  if (!state.me && h !== '#/login') return go('#/login');
+  if (state.me && h === '#/login') return go('#/');
+  if (h === '#/login') return viewLogin('login', true);
   if (h === '#/') return viewHome();
   if (h === '#/write') return viewWrite();
   if (h === '#/likes') return viewLikes();
@@ -421,10 +599,10 @@ async function router() {
 }
 window.addEventListener('hashchange', router);
 (async () => {
-  try {
-    [state.me, state.meta] = await Promise.all([api('/me'), api('/meta')]);
-    router();
-  } catch (e) { $app.innerHTML = emptyBox('⚠️', '서버에 연결할 수 없어요.<br>node server.js 로 서버를 실행했는지 확인해 주세요.'); }
+  try { state.meta = await api('/meta'); }
+  catch { $app.innerHTML = emptyBox('⚠️', '서버에 연결할 수 없어요.<br>잠시 후 다시 시도해 주세요.'); return; }
+  try { state.me = await api('/me', { noRedirect: true }); } catch { state.me = null; }
+  router();
 })();
 </script>
 </body>

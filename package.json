@@ -1,0 +1,19 @@
+{
+  "name": "danggeun-clone",
+  "version": "2.0.0",
+  "description": "당근마켓 클론 (Node.js + PostgreSQL)",
+  "main": "server.js",
+  "private": true,
+  "engines": {
+    "node": ">=20.6"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --env-file=.env server.js",
+    "test": "node --no-warnings test/run.js"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.16",
+    "pg": "^8.13.0"
+  }
+}
